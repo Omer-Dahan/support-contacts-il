@@ -1,0 +1,4 @@
+telethon>=1.34
+aiosqlite
+pydantic-settings
+python-dotenv

@@ -1,0 +1,18 @@
+# Sensitive / secrets
+.env
+*.session
+*.session-journal
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Backups & temp
+*.bak
+*.bak2
+*.tmp
+
+# Local test artifacts
+data/test_*.vcf
