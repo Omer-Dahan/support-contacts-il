@@ -1,90 +1,90 @@
 # 📇 Support Contacts IL
 
-מאגר פרטי שירות ותמיכה של **645 חברות ישראליות** + בוט טלגרם לחיפוש חופשי וייצוא אנשי קשר.
+A database of customer service & support contacts for **645 Israeli companies**, plus a Telegram bot for free-text search and VCF export.
 
-> 🇮🇱 מספרי טלפון, מיילים, וואטסאפ, שעות פעילות, סניפים ומדדי שירות — במקום אחד.
+> 🇮🇱 Phone numbers, emails, WhatsApp channels, opening hours, branches and service metrics — all in one place.
 
 ---
 
-## ✨ מה זה עושה
+## ✨ Features
 
 | | |
 |---|---|
-| 🔍 | **חיפוש חופשי** במאגר — לפי שם חברה, קטגוריה, עיר, טלפון, מייל |
-| 📂 | דפדוף לפי **21 קטגוריות** (בנקים, סלולר, חשמל, ביטוח, בריאות...) |
-| 📇 | **ייצוא VCF** — אישי, לפי קטגוריה או לפי חיפוש, לייבוא ישיר לטלפון |
-| 📊 | **מדדי שירות** — זמני מענה, אחוזי מענה, פילוח רגשות מפניות גולשים |
-| 🤖 | פרטי חברה מלאים: טלפונים, מיילים, WhatsApp, שעות, סניפים, סיכום AI |
+| 🔍 | **Free-text search** — by company name, category, city, phone, or email |
+| 📂 | Browse **21 categories** (banks, cellular, electricity, insurance, health...) |
+| 📇 | **VCF export** — personal, by category or by search query, importable straight to your phone |
+| 📊 | **Service metrics** — response times, answer rates, sentiment analysis from user complaints |
+| 🤖 | Full company profile: phones, emails, WhatsApp, hours, branches, AI summary |
 
-## 🗄️ המאגר
+## 🗄️ The Database
 
-| נתון | ערך |
+| Metric | Value |
 |---|---|
-| חברות | 645 |
-| מספרי טלפון | 2,118 |
-| מיילים | 2,379 |
-| ערוצי WhatsApp | 408 |
-| סניפים | 5,556 |
-| שאלות נפוצות (FAQ) | 7,704 |
+| Companies | 645 |
+| Phone numbers | 2,118 |
+| Emails | 2,379 |
+| WhatsApp channels | 408 |
+| Branches | 5,556 |
+| FAQs | 7,704 |
 
-מנוע חיפוש **FTS5** (SQLite) עם ניקוד רלוונטיות (BM25) ותמיכה מלאה בעברית.
+**FTS5** (SQLite) search engine with BM25 relevance scoring and full Hebrew support.
 
-## 🤖 הבוט (Telegram)
+## 🤖 Telegram Bot
 
-בנוי עם **Telethon (MTProto) בלבד** — ללא aiogram / python-telegram-bot / pyrogram.
+Built with **Telethon (MTProto) only** — no aiogram / python-telegram-bot / pyrogram.
 
-### פיצ'רים
-- `/start` — תפריט ראשי עם ניווט inline (כפתורים שקופים, עריכה במקום)
-- חיפוש טקסט חופשי → תוצאות מדורגות, 5 לעמוד, ניווט prev/next
-- פרטי חברה מלאים + ייצוא VCF לחברה בודדת
-- ייצוא VCF: כל המאגר / לפי קטגוריה / לפי חיפוש
-- מצב per-user בזיכרון (אין צורך ב-FSM)
+### Features
+- `/start` — main menu with inline navigation (transparent buttons, in-place editing)
+- Free-text search → ranked results, 5 per page, prev/next navigation
+- Full company profile + single-company VCF export
+- VCF export: entire database / by category / by search query
+- Per-user in-memory state (no FSM framework needed)
 
-### הרצה
+### Run
 
 ```bash
-# 1. סביבה
+# 1. Environment
 uv venv ~/venvs/support-bot
 ~/venvs/support-bot/bin/pip install -r requirements.txt
 
-# 2. הגדרות (העתק מ-.env.example)
-#    TELEGRAM_API_ID / TELEGRAM_API_HASH מ-my.telegram.org
-#    BOT_TOKEN מ-@BotFather
+# 2. Configuration (copy from .env.example)
+#    TELEGRAM_API_ID / TELEGRAM_API_HASH from my.telegram.org
+#    BOT_TOKEN from @BotFather
 cp .env.example .env
 
-# 3. בדיקת עשן
+# 3. Smoke test
 bash scripts/smoke_test.sh
 
-# 4. הרצה
+# 4. Run
 ~/venvs/support-bot/bin/python -m bot.main
 ```
 
-## 🛠️ כלים
+## 🛠️ Tools
 
-| סקריפט | תפקיד |
+| Script | Purpose |
 |---|---|
-| `search.py` | חיפוש חופשי במאגר מהטרמינל (`python3 search.py "חשמל"`) |
-| `export_vcf.py` | ייצוא VCF (`--category "בנקים"`, `--query`, `--slugs`, `--all`) |
-| `scraper/scrape_sherutplus.py` | סריקה ועדכון המאגר מ-sherutplus.com |
-| `scraper/fix_ai_summary.py` | תיקון/מילוי סיכומי AI ופילוח רגשות |
+| `search.py` | Terminal free-text search (`python3 search.py "electricity"`) |
+| `export_vcf.py` | VCF export (`--category "Banks"`, `--query`, `--slugs`, `--all`) |
+| `scraper/scrape_sherutplus.py` | Scrape & refresh the database from sherutplus.com |
+| `scraper/fix_ai_summary.py` | Repair/populate AI summaries and sentiment breakdowns |
 
-## 🗂️ מבנה הפרויקט
+## 🗂️ Project Structure
 
 ```
-bot/                 בוט הטלגרם (Telethon)
+bot/                 Telegram bot (Telethon)
   handlers/          start, search, details, export, callbacks
-scraper/             סריקה, חילוץ ותיקון נתונים
-data/                sherutplus.db + נתונים גולמיים (JSONL)
-research/            מחקר השוק המלא (מקורות, מתחרים, סכמה)
+scraper/             scraping, extraction & data repair
+data/                sherutplus.db + raw data (JSONL)
+research/            full market research (sources, competitors, schema)
 ```
 
-## 📚 מחקר
+## 📚 Research
 
-בתיקיית `research/` — מחקר שוק מלא: מקורות אמינים, השוואת מתחרים, המלצת סכמת נתונים (JSON source of truth → VCF + בוט) ושיטות עדכון שוטף.
+The `research/` folder contains the complete market research: reliable sources, competitor comparison, recommended data schema (JSON source of truth → VCF + bot) and refresh strategy.
 
 ---
 
-## ⚠️ הערות
+## ⚠️ Notes
 
-- פרטי הקשר נאספים ממקורות ציבוריים (אתרי חברות + אינדקסים) — יש לאמת מול האתר הרשמי לפני שימוש קריטי.
-- כל חברה כוללת `source_url` + תאריך אימות בסכמת הנתונים.
+- Contact details are collected from public sources (company websites + directories) — verify against the official site before critical use.
+- Every company record includes a `source_url` and verification date in the data schema.
