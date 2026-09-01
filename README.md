@@ -2,7 +2,7 @@
 
 A database of customer service & support contacts for **645 Israeli companies**, plus a Telegram bot for free-text search and VCF export.
 
-> 🇮🇱 Phone numbers, emails, WhatsApp channels, opening hours, branches and service metrics — all in one place.
+> 🇮🇱 Phone numbers, emails, WhatsApp channels, opening hours, branches and service metrics, all in one place.
 
 ---
 
@@ -10,10 +10,10 @@ A database of customer service & support contacts for **645 Israeli companies**,
 
 | | |
 |---|---|
-| 🔍 | **Free-text search** — by company name, category, city, phone, or email |
+| 🔍 | **Free-text search**: by company name, category, city, phone, or email |
 | 📂 | Browse **21 categories** (banks, cellular, electricity, insurance, health...) |
-| 📇 | **VCF export** — personal, by category or by search query, importable straight to your phone |
-| 📊 | **Service metrics** — response times, answer rates, sentiment analysis from user complaints |
+| 📇 | **VCF export**: personal, by category or by search query, importable straight to your phone |
+| 📊 | **Service metrics**: response times, answer rates, sentiment analysis from user complaints |
 | 🤖 | Full company profile: phones, emails, WhatsApp, hours, branches, AI summary |
 
 ## 🗄️ The Database
@@ -31,10 +31,10 @@ A database of customer service & support contacts for **645 Israeli companies**,
 
 ## 🤖 Telegram Bot
 
-Built with **Telethon (MTProto) only** — no aiogram / python-telegram-bot / pyrogram.
+Built with **Telethon (MTProto) only**, no aiogram / python-telegram-bot / pyrogram.
 
 ### Features
-- `/start` — main menu with inline navigation (transparent buttons, in-place editing)
+- `/start`: main menu with inline navigation (transparent buttons, in-place editing)
 - Free-text search → ranked results, 5 per page, prev/next navigation
 - Full company profile + single-company VCF export
 - VCF export: entire database / by category / by search query
@@ -86,5 +86,5 @@ The `research/` folder contains the complete market research: reliable sources, 
 
 ## ⚠️ Notes
 
-- Contact details are collected from public sources (company websites + directories) — verify against the official site before critical use.
+- Contact details are collected from public sources (company websites + directories). Verify against the official site before critical use.
 - Every company record includes a `source_url` and verification date in the data schema.
