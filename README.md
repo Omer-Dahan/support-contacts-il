@@ -15,6 +15,8 @@ A database of customer service & support contacts for **645 Israeli companies**,
 | 📇 | **VCF export**: personal, by category or by search query, importable straight to your phone |
 | 📊 | **Service metrics**: response times, answer rates, sentiment analysis from user complaints |
 | 🤖 | Full company profile: phones, emails, WhatsApp, hours, branches, AI summary |
+| 🛠️ | **Admin Panel**: live statistics (active users, top searches, top viewed companies, VCF exports) |
+| 📢 | **Channel Link**: quick link to our Telegram bots channel across key screens |
 
 ## 🗄️ The Database
 
@@ -33,11 +35,14 @@ A database of customer service & support contacts for **645 Israeli companies**,
 
 Built with **Telethon (MTProto) only**, no aiogram / python-telegram-bot / pyrogram.
 
-### Features
+### Bot Features
 - `/start`: main menu with inline navigation (transparent buttons, in-place editing)
-- Free-text search → ranked results, 5 per page, prev/next navigation
+- Free-text search -> ranked results, 5 per page, prev/next navigation
 - Full company profile + single-company VCF export
 - VCF export: entire database / by category / by search query
+- Channel button: direct link to the Telegram bot channel on main menu, about screen, successful export, and admin panel
+- `/admin`: protected admin dashboard with real-time usage statistics (only accessible to `ADMIN_CHAT_ID`)
+- User activity tracking: separate SQLite database (`data/users.db`) for user events (created automatically on first run; never modifies `sherutplus.db`)
 - Per-user in-memory state (no FSM framework needed)
 
 ### Run
@@ -50,6 +55,7 @@ uv venv ~/venvs/support-bot
 # 2. Configuration (copy from .env.example)
 #    TELEGRAM_API_ID / TELEGRAM_API_HASH from my.telegram.org
 #    BOT_TOKEN from @BotFather
+#    ADMIN_CHAT_ID: your Telegram numeric ID (e.g. from @userinfobot)
 cp .env.example .env
 
 # 3. Smoke test
@@ -58,6 +64,15 @@ bash scripts/smoke_test.sh
 # 4. Run
 ~/venvs/support-bot/bin/python -m bot.main
 ```
+
+### Admin Configuration
+To enable the `/admin` control panel:
+1. Obtain your Telegram numeric user ID (e.g. by messaging `@userinfobot` or `@raw_data_bot`).
+2. Add `ADMIN_CHAT_ID=your_numeric_id` to your `.env` file.
+3. In Telegram, send `/admin` or `/stats` to view real-time statistics (total users, active users in 7 days, top viewed companies, search queries, VCF export breakdown).
+4. Unauthorized users attempting to send `/admin` are silently ignored without exposing system details.
+
+> **Note:** The `data/users.db` database is created automatically on first run to store user sessions and event metrics. It is excluded from version control via `.gitignore`.
 
 ## 🛠️ Tools
 
@@ -72,7 +87,8 @@ bash scripts/smoke_test.sh
 
 ```
 bot/                 Telegram bot (Telethon)
-  handlers/          start, search, details, export, callbacks
+  handlers/          start, search, details, export, callbacks, admin
+  users_db.py        User activity and analytics tracking (users.db)
 scraper/             scraping, extraction & data repair
 data/                sherutplus.db + raw data (JSONL)
 research/            full market research (sources, competitors, schema)
@@ -80,7 +96,7 @@ research/            full market research (sources, competitors, schema)
 
 ## 📚 Research
 
-The `research/` folder contains the complete market research: reliable sources, competitor comparison, recommended data schema (JSON source of truth → VCF + bot) and refresh strategy.
+The `research/` folder contains the complete market research: reliable sources, competitor comparison, recommended data schema (JSON source of truth -> VCF + bot) and refresh strategy.
 
 ---
 

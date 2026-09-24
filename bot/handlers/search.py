@@ -1,3 +1,4 @@
+import asyncio
 import html
 import logging
 
@@ -9,12 +10,13 @@ from bot.db import PAGE_SIZE, search_companies
 from bot.handlers.export import handle_export_query
 from bot.handlers.start import back_to_menu_keyboard
 from bot.states import get_session
+from bot.users_db import record_event
 
 logger = logging.getLogger(__name__)
 
 SEARCH_PROMPT_MESSAGE = (
     "🔍 <b>חיפוש חופשי</b>\n\n"
-    "כתבו שם חברה, קטגוריה, עיר או כל מילה רלוונטית — לדוגמה: "
+    "כתבו שם חברה, קטגוריה, עיר או כל מילה רלוונטית - לדוגמה: "
     "<i>חשמל</i>, <i>בנק מזרחי</i>, <i>תל אביב</i>."
 )
 NO_RESULTS_MESSAGE = '😕 לא נמצאו תוצאות עבור "{query}".\n\nנסו מילה אחרת או פחות ספציפית.'
@@ -36,7 +38,7 @@ def render_results_page(session) -> tuple[str, list]:
         name = html.escape(item.get("name") or "ללא שם")
         category = html.escape(item.get("category") or "כללי")
         phone = item.get("primary_phone") or "אין מספר ראשי"
-        lines.append(f"{start + i}. <b>{name}</b> — {category}\n   📞 {phone}")
+        lines.append(f"{start + i}. <b>{name}</b> - {category}\n   📞 {phone}")
 
     buttons = []
     for item in page_items:
@@ -74,6 +76,14 @@ def register_handlers(client: TelegramClient) -> None:
             return
 
         try:
+            asyncio.create_task(
+                record_event(
+                    chat_id,
+                    "search",
+                    query=query,
+                    db_path=settings.users_db_path,
+                )
+            )
             results = await search_companies(settings.db_path, query)
             session.results = results
             session.page = 0

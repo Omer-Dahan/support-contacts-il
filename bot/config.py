@@ -14,6 +14,10 @@ class Settings(BaseSettings):
         default="/home/vm/projects/support-contacts-il/data/sherutplus.db",
         alias="DB_PATH",
     )
+    users_db_path: str = Field(
+        default="/home/vm/projects/support-contacts-il/data/users.db",
+        alias="USERS_DB_PATH",
+    )
     admin_chat_id: Optional[int] = Field(default=None, alias="ADMIN_CHAT_ID")
 
     @field_validator("admin_chat_id", mode="before")
@@ -23,3 +27,9 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def is_admin(user_id: Optional[int]) -> bool:
+    if settings.admin_chat_id is None or user_id is None:
+        return False
+    return user_id == settings.admin_chat_id

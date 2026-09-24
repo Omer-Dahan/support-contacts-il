@@ -3,6 +3,10 @@
 *.session
 *.session-journal
 
+# Databases
+data/users.db
+data/users.db-journal
+
 # Python
 __pycache__/
 *.pyc

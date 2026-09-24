@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 import re
@@ -12,12 +13,13 @@ from bot.config import settings
 from bot.db import get_categories, get_companies_for_export, get_company_details
 from bot.handlers.start import back_to_menu_keyboard
 from bot.states import get_session
+from bot.users_db import record_event, update_last_seen
 
 logger = logging.getLogger(__name__)
 
 EXPORT_MENU_MESSAGE = (
     "📇 <b>ייצוא אנשי קשר (VCF)</b>\n\n"
-    "בחרו מה לייצא — הקובץ יישלח כאן ומתאים לייבוא ישיר לאנשי הקשר בטלפון."
+    "בחרו מה לייצא - הקובץ יישלח כאן ומתאים לייבוא ישיר לאנשי הקשר בטלפון."
 )
 EXPORT_QUERY_PROMPT = "🔍 כתבו את מילת החיפוש שלפיה לייצא אנשי קשר (לדוגמה: <i>ביטוח</i>)."
 EXPORT_EMPTY_MESSAGE = "😕 לא נמצאו חברות תואמות לייצוא."
@@ -29,6 +31,14 @@ def export_menu_keyboard() -> list:
         [Button.inline("📦 כל המאגר", data=b"exp:all")],
         [Button.inline("📂 לפי קטגוריה", data=b"exp:catlist")],
         [Button.inline("🔍 לפי חיפוש", data=b"exp:querymode")],
+        [Button.inline("↩️ תפריט ראשי", data=b"menu:main")],
+    ]
+
+
+def export_success_keyboard() -> list:
+    """מקלדת לאחר ייצוא VCF מוצלח עם קישור לערוץ וחזרה לתפריט."""
+    return [
+        [Button.url("📢 ערוץ הבוטים שלנו", "https://t.me/YD_IL_BOTS")],
         [Button.inline("↩️ תפריט ראשי", data=b"menu:main")],
     ]
 
@@ -121,7 +131,7 @@ async def send_vcf_file(event, companies: list[dict], filename_base: str) -> Non
         await event.respond(
             f"✅ יוצאו {len(companies)} אנשי קשר.",
             file=tmp_path,
-            buttons=back_to_menu_keyboard(),
+            buttons=export_success_keyboard(),
         )
     finally:
         try:
@@ -132,6 +142,10 @@ async def send_vcf_file(event, companies: list[dict], filename_base: str) -> Non
 
 async def handle_export_query(event, chat_id: int, query: str) -> None:
     try:
+        asyncio.create_task(update_last_seen(chat_id, settings.users_db_path))
+        asyncio.create_task(
+            record_event(chat_id, "export", detail="query", db_path=settings.users_db_path)
+        )
         companies = await get_companies_for_export(settings.db_path, query=query)
         await send_vcf_file(event, companies, f"search_{query}")
     except Exception:
@@ -147,8 +161,13 @@ def register_handlers(client: TelegramClient) -> None:
         action = data.split(":", 1)[1]
 
         try:
+            asyncio.create_task(update_last_seen(chat_id, settings.users_db_path))
+
             if action == "all":
                 await event.answer("מייצא את כל המאגר, רגע...")
+                asyncio.create_task(
+                    record_event(chat_id, "export", detail="all", db_path=settings.users_db_path)
+                )
                 companies = await get_companies_for_export(settings.db_path, all_companies=True)
                 await send_vcf_file(event, companies, "support_contacts_il_all")
 
@@ -162,6 +181,9 @@ def register_handlers(client: TelegramClient) -> None:
             elif action.startswith("cat:"):
                 category = action.split(":", 1)[1]
                 await event.answer(f"מייצא את קטגוריית {category}, רגע...")
+                asyncio.create_task(
+                    record_event(chat_id, "export", detail="category", db_path=settings.users_db_path)
+                )
                 companies = await get_companies_for_export(settings.db_path, category=category)
                 await send_vcf_file(event, companies, f"category_{category}")
 
@@ -173,6 +195,9 @@ def register_handlers(client: TelegramClient) -> None:
             elif action.startswith("one:"):
                 slug = action.split(":", 1)[1]
                 await event.answer("מייצא, רגע...")
+                asyncio.create_task(
+                    record_event(chat_id, "export", detail="one", db_path=settings.users_db_path)
+                )
                 company = await get_company_details(settings.db_path, slug)
                 await send_vcf_file(event, [company] if company else [], f"company_{slug}")
 

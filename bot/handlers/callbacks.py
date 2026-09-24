@@ -1,3 +1,4 @@
+import asyncio
 import html
 import logging
 
@@ -9,8 +10,15 @@ from bot.db import get_categories, get_companies_by_category, get_company_detail
 from bot.handlers.details import render_company_details
 from bot.handlers.export import EXPORT_MENU_MESSAGE, export_menu_keyboard
 from bot.handlers.search import ERROR_GENERIC, SEARCH_PROMPT_MESSAGE, render_results_page
-from bot.handlers.start import ABOUT_MESSAGE, WELCOME_MESSAGE, back_to_menu_keyboard, main_menu_keyboard
+from bot.handlers.start import (
+    ABOUT_MESSAGE,
+    WELCOME_MESSAGE,
+    about_keyboard,
+    back_to_menu_keyboard,
+    main_menu_keyboard,
+)
 from bot.states import get_session
+from bot.users_db import record_event, update_last_seen
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +39,7 @@ def register_handlers(client: TelegramClient) -> None:
         action = event.data.decode("utf-8").split(":", 1)[1]
 
         try:
+            asyncio.create_task(update_last_seen(chat_id, settings.users_db_path))
             get_session(chat_id).awaiting_export_query = False
 
             if action == "main":
@@ -51,7 +60,7 @@ def register_handlers(client: TelegramClient) -> None:
                 await event.edit(EXPORT_MENU_MESSAGE, buttons=export_menu_keyboard(), parse_mode="html")
 
             elif action == "about":
-                await event.edit(ABOUT_MESSAGE, buttons=back_to_menu_keyboard(), parse_mode="html")
+                await event.edit(ABOUT_MESSAGE, buttons=about_keyboard(), parse_mode="html")
         except Exception:
             logger.exception("error handling menu callback for chat_id=%s", chat_id)
             await event.answer(ERROR_GENERIC, alert=True)
@@ -62,6 +71,7 @@ def register_handlers(client: TelegramClient) -> None:
         category = event.data.decode("utf-8").split(":", 1)[1]
 
         try:
+            asyncio.create_task(update_last_seen(chat_id, settings.users_db_path))
             session = get_session(chat_id)
             companies = await get_companies_by_category(settings.db_path, category)
             session.results = companies
@@ -89,10 +99,26 @@ def register_handlers(client: TelegramClient) -> None:
         slug = event.data.decode("utf-8").split(":", 1)[1]
 
         try:
+            asyncio.create_task(update_last_seen(chat_id, settings.users_db_path))
             company = await get_company_details(settings.db_path, slug)
             if not company:
                 await event.answer("החברה לא נמצאה.", alert=True)
                 return
+
+            comp_name = (
+                company.get("name")
+                or company.get("legal_name")
+                or company.get("slug")
+                or "ללא שם"
+            )
+            asyncio.create_task(
+                record_event(
+                    chat_id,
+                    "company_view",
+                    detail=comp_name.strip(),
+                    db_path=settings.users_db_path,
+                )
+            )
 
             text, buttons = render_company_details(company)
             await event.edit(text, buttons=buttons, parse_mode="html")
@@ -106,6 +132,7 @@ def register_handlers(client: TelegramClient) -> None:
         action = event.data.decode("utf-8").split(":", 1)[1]
 
         try:
+            asyncio.create_task(update_last_seen(chat_id, settings.users_db_path))
             if action == "noop":
                 await event.answer()
                 return
